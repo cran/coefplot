@@ -3,7 +3,9 @@
 #'
 #' Plot the coeffcients from multiple models
 #'
-#' Plots a graph similar to \code{\link{coefplot}} but for multiple plots at once
+#' Plots a graph similar to \code{\link{coefplot}} but for multiple plots at once.
+#'
+#' For now, if \code{names} is provided the plots will appear in alphabetical order of the names.  This wil be adjusted in future iterations.
 #'
 #' @export multiplot
 #' @seealso \code{link{coefplot}}
@@ -23,10 +25,12 @@
 #' @param zeroLWD The thickness of the 0 line
 #' @param zeroType The type of 0 line, 0 will mean no line
 ## @param facet logical; If the coefficients should be faceted by the variables, numeric coefficients (including the intercept) will be one facet
+#' @param single logical; If TRUE there will be one plot with the points and bars stacked, otherwise the models will be displayed in seperate facets
 #' @param scales The way the axes should be treated in a faceted plot.  Can be c("fixed", "free", "free_x", "free_y")
 #' @param ncol The number of columns that the models should be plotted in
 #' @param sort Determines the sort order of the coefficients.  Possible values are c("natural", "normal", "magnitude", "size", "alphabetical")
 #' @param decreasing logical; Whether the coefficients should be ascending or descending
+#' @param names Names for models, if NULL then they will be numerically labelled
 #' @param numeric logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with constinuous confidence bounds.
 #' @param fillColor The color of the confidence bounds for a numeric factor
 #' @param alpha The transparency level of the numeric factor's confidence bound
@@ -45,6 +49,7 @@
 #' model2 <- lm(price ~ carat + cut + color, data=diamonds)
 #' model3 <- lm(price ~ carat + color, data=diamonds)
 #' multiplot(model1, model2, model3)
+#' multiplot(model1, model2, model3, single=FALSE)
 #' multiplot(model1, model2, model3, factors="color")
 #' multiplot(model1, model2, model3, factors="color", drop=TRUE)
 #' multiplot(model1, model2, model3, plot=FALSE)
@@ -53,24 +58,37 @@ multiplot <- function(..., title="Coefficient Plot", xlab="Value", ylab="Coeffic
     					innerCI=1, outerCI=2, lwdInner=1, lwdOuter=0,  color="blue",
 						cex=.8, textAngle=0, numberAngle=90,
 						zeroColor="grey", zeroLWD=1, zeroType=2,
-						#facet=FALSE, 
-                        scales="fixed", ncol=length(unique(modelCI$Call)),
-						sort="natural", decreasing=FALSE,
+						#facet=FALSE,
+                        single=TRUE,
+                        scales="fixed", ncol=length(unique(modelCI$Model)),
+						sort="natural", decreasing=FALSE, names=NULL,
 						numeric=FALSE, fillColor="grey", alpha=1/2,
 						horizontal=FALSE, factors=NULL, only=NULL, shorten=TRUE,
 						intercept=TRUE, plot=TRUE, drop=FALSE)
 {
-    # grab the models
-    theDots <- list(...)
-    
-    # need to add arguments for buildModelCI
-    # functionize modelMelt
+    ## if ... is already a list just grab the dots, otherwise force it into a list
+    if(tryCatch(is.list(...), error = function(e) FALSE))
+    {
+        # grab the models
+        theDots <- list(...)[[1]]
+    }else
+    {
+        # grab the models
+        theDots <- list(...)
+    }
+#    return(theDots)
     # need to change getModelInfo and buildModelCI and coefplot.lm so that shorten, factors and only are normal arguments and not part of ..., that way it will work better for this
     # get the modelCI for each model and make one big data.frame
     modelCI <- ldply(theDots, .fun=buildModelCI, outerCI=outerCI, innerCI=innerCI, intercept=intercept, numeric=numeric, sort=sort, decreasing=decreasing, factors=factors, only=only, shorten=shorten)
     
     # Turn the Call into a unique identifier for each model
-    modelCI$Call <- as.numeric(factor(modelCI$Call, levels=unique(modelCI$Call)))
+    modelCI$Model <- as.numeric(factor(modelCI$Model, levels=unique(modelCI$Model)))
+    
+    # if names are provided use those instead of the numbers
+    if(!is.null(names))
+    {
+        modelCI$Model <- names[modelCI$Model]
+    }
     
     ## if we are not plotting return modelCI right away
     if(!plot)
@@ -81,38 +99,37 @@ multiplot <- function(..., title="Coefficient Plot", xlab="Value", ylab="Coeffic
     ## if drop is true get rid of models without valid coefficients
     if(drop)
     {
-        notNA <- daply(modelCI, .variables="Call", function(x) { !all(is.na(x$Coef)) })
-        #return(notNA)
-        modelCI <- modelCI[modelCI$Call %in% which(notNA == TRUE), ]
+        notNA <- daply(modelCI, .variables="Model", function(x) { !all(is.na(x$Coef)) })
+        #return(which(notNA == TRUE))
+        modelCI <- modelCI[modelCI$Model %in% names(which(notNA == TRUE)), ]
     }
     
     # which columns will be kept in the melted data.frame
-    keepCols <- c("LowOuter", "HighOuter", "LowInner", "HighInner", "Coef", "Checkers", "CoefShort", "Call")
-    
-    modelMelting <- meltModelCI(modelCI=modelCI, keepCols=keepCols, 
-                        id.vars=c("CoefShort", "Checkers", "Call"), variable_name="Type", outerCols=c("LowOuter", "HighOuter"), 
-                        innerCols=c("LowInner", "HighInner"))
-    #modelMelt <- modelMelting$modelMelt
-    #return(modelMelting)
-    modelMeltInner <- modelMelting$modelMeltInner
-    modelMeltOuter <- modelMelting$modelMeltOuter
-    #return(modelMelting)
-    rm(modelMelting); gc()      # housekeeping
+    keepCols <- c("LowOuter", "HighOuter", "LowInner", "HighInner", "Coef", "Checkers", "CoefShort", "Model")
+
+    modelMelting <- meltModelCI(modelCI=modelCI, keepCols=keepCols, id.vars=c("CoefShort", "Checkers", "Model"), 
+                                variable_name="Type", outerCols=c("LowOuter", "HighOuter"), innerCols=c("LowInner", "HighInner")) 
+ 
+
+    modelMelt <- modelMelting$modelMelt 
+    modelMeltInner <- modelMelting$modelMeltInner 
+    modelMeltOuter <- modelMelting$modelMeltOuter 
+    rm(modelMelting); gc()      # housekeeping 
+
     
     if(plot)
     {
-        p <- buildPlotting(modelCI=modelCI, modelMeltInner=modelMeltInner, modelMeltOuter=modelMeltOuter,
+        p <- buildPlotting.lm(modelCI=modelCI,
+                            modelMeltInner=modelMeltInner, modelMeltOuter=modelMeltOuter,
                            title=title, xlab=xlab, ylab=ylab,
                            lwdInner=lwdInner, lwdOuter=lwdOuter, color=color, cex=cex, textAngle=textAngle, 
-                           numberAngle=numberAngle, zeroColor=zeroColor, zeroLWD=zeroLWD, outerCI=outerCI, innerCI=innerCI,
+                           numberAngle=numberAngle, zeroColor=zeroColor, zeroLWD=zeroLWD, outerCI=outerCI, innerCI=innerCI, multi=single,
                            zeroType=zeroType, numeric=numeric, fillColor=fillColor, alpha=alpha, 
                            horizontal=horizontal, facet=FALSE, scales="fixed")
     
-        p + facet_wrap(~Call, scales=scales, ncol=ncol)
+        p + scale_colour_discrete("Model") + if(!single) facet_wrap(~Model, scales=scales, ncol=ncol)
     }else
     {
         return(modelCI)
     }
-    
-    #return(modelCI)
 }

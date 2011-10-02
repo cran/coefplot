@@ -1,15 +1,15 @@
-\name{buildPlotting}
-\alias{buildPlotting}
+\name{buildPlotting.lm}
+\alias{buildPlotting.lm}
 \title{Coefplot plotting}
 \usage{
-  buildPlotting(modelCI, modelMeltInner, modelMeltOuter,
-  title = "Coefficient Plot", xlab = "Value", ylab =
-  "Coefficient", lwdInner = 1, lwdOuter = 0, color =
-  "blue", cex = 0.8, textAngle = 0, numberAngle = 0,
-  outerCI = 2, innerCI = 1, zeroColor = "grey", zeroLWD =
-  1, zeroType = 2, numeric = FALSE, fillColor = "grey",
-  alpha = 1/2, horizontal = FALSE, facet = FALSE, scales =
-  "free")
+  buildPlotting.lm(modelCI, modelMeltInner = NULL,
+  modelMeltOuter = NULL, title = "Coefficient Plot", xlab =
+  "Value", ylab = "Coefficient", lwdInner = 1, lwdOuter =
+  0, color = "blue", cex = 0.8, textAngle = 0, numberAngle
+  = 0, outerCI = 2, innerCI = 1, multi = FALSE, zeroColor =
+  "grey", zeroLWD = 1, zeroType = 2, numeric = FALSE,
+  fillColor = "grey", alpha = 1/2, horizontal = FALSE,
+  facet = FALSE, scales = "free")
 }
 \arguments{
   \item{modelCI}{An object created by
@@ -35,6 +35,9 @@
   \item{outerCI}{How wide the outer confidence interval
   should be, normally 2 standard deviations.  If 0, then
   there will be no outer confidence interval.}
+
+  \item{multi}{logical; If this is for
+  \code{\link{multiplot}} then dodge the geoms}
 
   \item{lwdInner}{The thickness of the inner confidence
   interval}
@@ -94,12 +97,13 @@ data(diamonds)
 model1 <- lm(price ~ carat + cut, data=diamonds)
 theCI <- coefplot:::buildModelCI(model1)
 theCIMelt <- coefplot:::meltModelCI(theCI)
-coefplot:::buildPlotting(theCI, theCIMelt$modelMeltInner, theCIMelt$modelMeltInner)
+coefplot:::buildPlotting.lm(theCI, theCIMelt$modelMeltInner, theCIMelt$modelMeltInner)
 }
 \author{
   Jared P. Lander www.jaredlander.com
 }
 \seealso{
   \code{\link{coefplot.lm}} \code{\link{coefplot}}
+  \code{\link{multiplot}}
 }
 

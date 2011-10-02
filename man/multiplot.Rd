@@ -6,12 +6,12 @@
   "Value", ylab = "Coefficient", innerCI = 1, outerCI = 2,
   lwdInner = 1, lwdOuter = 0, color = "blue", cex = 0.8,
   textAngle = 0, numberAngle = 90, zeroColor = "grey",
-  zeroLWD = 1, zeroType = 2, scales = "fixed", ncol =
-  length(unique(modelCI$Call)), sort = "natural",
-  decreasing = FALSE, numeric = FALSE, fillColor = "grey",
-  alpha = 1/2, horizontal = FALSE, factors = NULL, only =
-  NULL, shorten = TRUE, intercept = TRUE, plot = TRUE, drop
-  = FALSE)
+  zeroLWD = 1, zeroType = 2, single = TRUE, scales =
+  "fixed", ncol = length(unique(modelCI$Model)), sort =
+  "natural", decreasing = FALSE, names = NULL, numeric =
+  FALSE, fillColor = "grey", alpha = 1/2, horizontal =
+  FALSE, factors = NULL, only = NULL, shorten = TRUE,
+  intercept = TRUE, plot = TRUE, drop = FALSE)
 }
 \arguments{
   \item{\dots}{Models to be plotted}
@@ -53,6 +53,10 @@
 
   \item{zeroType}{The type of 0 line, 0 will mean no line}
 
+  \item{single}{logical; If TRUE there will be one plot
+  with the points and bars stacked, otherwise the models
+  will be displayed in seperate facets}
+
   \item{scales}{The way the axes should be treated in a
   faceted plot.  Can be c("fixed", "free", "free_x",
   "free_y")}
@@ -66,6 +70,9 @@
 
   \item{decreasing}{logical; Whether the coefficients
   should be ascending or descending}
+
+  \item{names}{Names for models, if NULL then they will be
+  numerically labelled}
 
   \item{numeric}{logical; If true and factors has exactly
   one value, then it is displayed in a horizontal graph
@@ -113,7 +120,11 @@
 }
 \details{
   Plots a graph similar to \code{\link{coefplot}} but for
-  multiple plots at once
+  multiple plots at once.
+
+  For now, if \code{names} is provided the plots will
+  appear in alphabetical order of the names.  This wil be
+  adjusted in future iterations.
 }
 \examples{
 data(diamonds)
@@ -121,6 +132,7 @@ model1 <- lm(price ~ carat + cut, data=diamonds)
 model2 <- lm(price ~ carat + cut + color, data=diamonds)
 model3 <- lm(price ~ carat + color, data=diamonds)
 multiplot(model1, model2, model3)
+multiplot(model1, model2, model3, single=FALSE)
 multiplot(model1, model2, model3, factors="color")
 multiplot(model1, model2, model3, factors="color", drop=TRUE)
 multiplot(model1, model2, model3, plot=FALSE)

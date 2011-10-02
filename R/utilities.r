@@ -214,12 +214,13 @@ rxVarMatcher <- function(modelFactorVars, modelCoefNames, modelCoefs, shorten=TR
 #' @param numeric logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with constinuous confidence bounds.
 #' @param intercept logical; Whether the Intercept coefficient should be plotted
 #' @param \dots See Details for information on \code{factors}, \code{only} and \code{shorten}
+#' @param name A name for the model, if NULL the call will be used
 ## @param multi logical, If \code{TRUE} a column is added denoting which model the modelCI is for
 ## @param factors Vector of factor variables that will be the only ones shown
 ## @param only logical; If factors has a value this determines how interactions are treated.  True means just that variable will be shown and not its interactions.  False means interactions will be included.
 ## @param shorten logical or character; If \code{FALSE} then coefficients for factor levels will include their variable name.  If \code{TRUE} coefficients for factor levels will be stripped of their variable names.  If a character vector of variables only coefficients for factor levels associated with those variables will the variable names stripped.
 #' @return Otherwise a \code{\link{data.frame}} listing coeffcients and confidence bands is returned.
-#' @seealso \code{\link{coefplot}}
+#' @seealso \code{\link{coefplot}} \code{\link{multiplot}}
 #' @examples
 #'
 #' data(diamonds)
@@ -234,7 +235,7 @@ rxVarMatcher <- function(modelFactorVars, modelCoefNames, modelCoefs, shorten=TR
 #' #coefplot(model3, factors="cut", numeric=T)
 #' #coefplot(model3, shorten="cut")
 #'
-buildModelCI <- function(model, outerCI=2, innerCI=1, intercept=TRUE, numeric=FALSE, sort="natural", decreasing=TRUE, ...)
+buildModelCI <- function(model, outerCI=2, innerCI=1, intercept=TRUE, numeric=FALSE, sort="natural", decreasing=TRUE, name=NULL, ...)
 {
     # get the information on the model
     modelInfo <- getModelInfo(model, ...)
@@ -303,7 +304,14 @@ buildModelCI <- function(model, outerCI=2, innerCI=1, intercept=TRUE, numeric=FA
 	#return(modelCI$Name)
 	modelCI$CoefShort <- factor(modelCI$CoefShort, levels=modelCI$CoefShort)
     
-    modelCI$Call <- as.character(model$call)[2]
+    # if a name for the model is provided, use it, otherwise use the call
+    if(is.null(name))
+    {
+        modelCI$Model <- as.character(model$call)[2]
+    }else
+    {
+        modelCI$Model <- name
+    }
     
     # convert the pipe in Checkers to a * for better display
     modelCI$Checkers <- gsub("\\|", ":", modelCI$Checkers)
@@ -356,6 +364,7 @@ meltModelCI <- function(modelCI, keepCols=c("LowOuter", "HighOuter", "LowInner",
     return(list(modelMelt=modelMelt, modelMeltOuter=modelMeltOuter, modelMeltInner=modelMeltInner))
 }
 
+#buildPlotting <-function()
 
 #' Coefplot plotting
 #'
@@ -364,8 +373,8 @@ meltModelCI <- function(modelCI, keepCols=c("LowOuter", "HighOuter", "LowInner",
 #' This function builds up the ggplot layer by layer for \code{\link{coefplot.lm}}
 #'
 #' @author Jared P. Lander www.jaredlander.com
-#' @seealso \code{\link{coefplot.lm}} \code{\link{coefplot}}
-#' @aliases buildPlotting
+#' @seealso \code{\link{coefplot.lm}} \code{\link{coefplot}} \code{\link{multiplot}}
+#' @aliases buildPlotting.lm
 #' @param modelCI An object created by \code{\link{buildModelCI}}
 #' @param modelMeltInner The inner SE part of the object built by \code{\link{meltModelCI}}
 #' @param modelMeltOuter The outer SE part of the object built by \code{\link{meltModelCI}}
@@ -374,6 +383,7 @@ meltModelCI <- function(modelCI, keepCols=c("LowOuter", "HighOuter", "LowInner",
 #' @param ylab The y label
 #' @param innerCI How wide the inner confidence interval should be, normally 1 standard deviation.  If 0, then there will be no inner confidence interval.
 #' @param outerCI How wide the outer confidence interval should be, normally 2 standard deviations.  If 0, then there will be no outer confidence interval.
+#' @param multi logical; If this is for \code{\link{multiplot}} then dodge the geoms
 #' @param lwdInner The thickness of the inner confidence interval
 #' @param lwdOuter The thickness of the outer confidence interval
 #' @param color The color of the points and lines
@@ -396,46 +406,77 @@ meltModelCI <- function(modelCI, keepCols=c("LowOuter", "HighOuter", "LowInner",
 #' model1 <- lm(price ~ carat + cut, data=diamonds)
 #' theCI <- coefplot:::buildModelCI(model1)
 #' theCIMelt <- coefplot:::meltModelCI(theCI)
-#' coefplot:::buildPlotting(theCI, theCIMelt$modelMeltInner, theCIMelt$modelMeltInner)
+#' coefplot:::buildPlotting.lm(theCI, theCIMelt$modelMeltInner, theCIMelt$modelMeltInner)
 #'
-buildPlotting <- function(modelCI, modelMeltInner, modelMeltOuter, title="Coefficient Plot", xlab="Value", ylab="Coefficient",
+buildPlotting.lm <- function(modelCI, 
+                        modelMeltInner=NULL, modelMeltOuter=NULL, 
+                        title="Coefficient Plot", xlab="Value", ylab="Coefficient",
                         lwdInner=1, lwdOuter=0, color="blue",
-    					cex=.8, textAngle=0, numberAngle=0, outerCI=2, innerCI=1,
+    					cex=.8, textAngle=0, numberAngle=0, outerCI=2, innerCI=1, multi=FALSE,
 						zeroColor="grey", zeroLWD=1, zeroType=2, numeric=FALSE, fillColor="grey", alpha=1/2,
     					horizontal=FALSE, facet=FALSE, scales="free")
 {
     ## build the layer infos
     # outerCI layer
-	outerCIGeom <- list(Display=geom_line(aes(x=value, group=CoefShort), data=modelMeltOuter, colour=color, lwd=lwdOuter), None=NULL)
+    # first is for a normal coefplot or a faceted multiplot
+    # the second is for a single-pane multiplot
+
+	outerCIGeom <- list(DisplayOne=geom_line(aes(t=CoefShort, x=value, group=CoefShort), data=modelMeltOuter, colour=color, lwd=lwdOuter),
+                        DisplayMany=geom_linerange(aes(ymin=LowOuter, ymax=HighOuter, colour=as.factor(Model)), data=modelCI, lwd=lwdOuter, position=position_dodge(width=1)),
+                        None=NULL)
 	# innerCI layer
-	innerCIGeom <- list(Display=geom_line(aes(x=value, group=CoefShort), data=modelMeltInner, colour=color, lwd=lwdInner), None=NULL)
+    # first is for a normal coefplot or a faceted multiplot
+    # the second is for a single-pane multiplot
+	innerCIGeom <- list(DisplayOne=geom_line(aes(y=CoefShort, x=value, group=CoefShort), data=modelMeltInner, colour=color, lwd=lwdOuter),
+                        DisplayMany=geom_linerange(aes(ymin=LowInner, ymax=HighInner, colour=as.factor(Model)), data=modelCI, lwd=lwdInner, position=position_dodge(width=1)),
+                        None=NULL)
 	# ribbon layer
 	ribbonGeom <- list(None=NULL, geom_ribbon(aes(ymin=LowOuter, ymax=HighOuter, group=Checkers), data=modelCI, fill=fillColor, alpha=alpha, lwd=lwdOuter))
 
+    # point layer
+    # first is for a normal coefplot or a faceted multiplot
+    # the second is for a single-pane multiplot
+    pointGeom <- list(DisplayOne=geom_point(colour=color),
+                      DisplayMany=geom_point(position=position_dodge(width=1), aes(ymax=Coef, colour=as.factor(Model))),
+                      None=NULL)
+    
 	# faceting info
 	faceting <- list(None=NULL, Display=facet_wrap(~Checkers, scales=scales))
     
     if(numeric)
 	{
+        # numeric (sideways) plot
 		p <- ggplot(data=modelCI, aes(y=Coef, x=CoefShort))			# the basics of the plot
 		p <- p + geom_hline(yintercept=0, colour=zeroColor, linetype=zeroType, lwd=zeroLWD)		# the zero line
 		p <- p + ribbonGeom[[numeric + 1]]		# the ribbon
 		p <- p + geom_point(colour=color)						# the points
 		p <- p + geom_line(data=modelCI, aes(y=HighOuter, x=CoefShort, group=Checkers), colour=color) +
 			geom_line(data=modelCI, aes(y=LowOuter, x=CoefShort, group=Checkers), colour=color)
-	}else
+	}else if(multi)
     {
-    	p <- ggplot(data=modelCI, aes(x=Coef, y=CoefShort))			# the basics of the plot
-    	p <- p + geom_vline(xintercept=0, colour=zeroColor, linetype=zeroType, lwd=zeroLWD)		# the zero line
-    	p <- p + outerCIGeom[[(outerCI/outerCI)]] +					# the outer CI bars
-    		innerCIGeom[[innerCI/innerCI]]						# the inner CI bars
-       	p <- p + geom_point(colour=color)						# the points
-     	p <- p + opts(title=title, axis.text.y=theme_text(angle=textAngle), axis.text.x=theme_text(angle=numberAngle)) + labs(x=xlab, y=ylab)	# labeling and text info
+        # for a multiplot that plots everything in one panel with dodged geoms
+    	p <- ggplot(data=modelCI, aes(y=Coef, x=CoefShort))			# the basics of the plot
+    	p <- p + geom_hline(yintercept=0, colour=zeroColor, linetype=zeroType, lwd=zeroLWD)		# the zero line
+    	p <- p + outerCIGeom[[(outerCI/outerCI) + multi]] +					# the outer CI bars
+    		    innerCIGeom[[innerCI/innerCI + multi]]						# the inner CI bars
+       	p <- p + pointGeom[[1 + multi]]						# the points
+        p <- p + scale_x_discrete()
+     	p <- p + opts(title=title, axis.text.y=theme_text(angle=textAngle), axis.text.x=theme_text(angle=numberAngle)) + labs(y=xlab, x=ylab)	# labeling and text info
      	p <- p + faceting[[facet + 1]]		# faceting
+     	p <- p + if(!horizontal) coord_flip()
+    }else
+    {
+        # for a regular coefplot or a multiplot in seperate facets
+        p <- ggplot(data=modelCI, aes(x=Coef, y=CoefShort))    		# the basics of the plot
+    	p <- p + geom_vline(xintercept=0, colour=zeroColor, linetype=zeroType, lwd=zeroLWD)		# the zero line
+        p <- p + outerCIGeom[[(outerCI/outerCI)]] #+    				# the outer CI bars
+    		    #innerCIGeom[[innerCI/innerCI]]						# the inner CI bars
+       	p <- p + pointGeom[[1]]						# the points
+        p <- p + opts(title=title, axis.text.y=theme_text(angle=textAngle), axis.text.x=theme_text(angle=numberAngle)) + labs(x=xlab, y=ylab)    # labeling and text info
+        p <- p + faceting[[facet + 1]]    	# faceting
      	p <- p + if(horizontal) coord_flip()
     }
-
-	rm(modelCI, modelMeltOuter, modelMeltInner); gc()		# housekeeping
+	rm(modelCI); gc()		# housekeeping
     
 	return(p)		# return the ggplot object
 }
