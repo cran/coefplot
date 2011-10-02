@@ -1,7 +1,7 @@
 Package: coefplot
 Type: Package
-Title: What the package does (short line)
-Version: 1.0
+Title: Plots Coefficients from Fitted Models
+Version: 1.1
 Date: 2011-10-02
 Author: Jared P. Lander
 Maintainer: <packages@jaredlander.com>
@@ -10,6 +10,7 @@ License: BSD
 Depends: ggplot2, plyr, useful, stringr, reshape2
 LazyLoad: yes
 Collate: 'coefplot.r' 'modelInfo.r' 'utilities.r' 'coefplot-package.r'
-Packaged: 2011-10-27 01:20:41 UTC; Jared
+        'multiplot.r'
+Packaged: 2011-10-31 03:09:00 UTC; Jared
 Repository: CRAN
-Date/Publication: 2011-10-27 01:30:48
+Date/Publication: 2011-11-02 17:25:43

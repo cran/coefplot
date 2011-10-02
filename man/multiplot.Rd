@@ -1,20 +1,20 @@
-\name{coefplot.lm}
-\alias{coefplot.lm}
-\alias{coefplot.rxLinMod}
-\title{Dotplot for model coefficients}
+\name{multiplot}
+\alias{multiplot}
+\title{Plot multiple coefplots}
 \usage{
-  coefplot.lm(model, title = "Coefficient Plot", xlab =
+  multiplot(..., title = "Coefficient Plot", xlab =
   "Value", ylab = "Coefficient", innerCI = 1, outerCI = 2,
   lwdInner = 1, lwdOuter = 0, color = "blue", cex = 0.8,
-  textAngle = 0, numberAngle = 0, zeroColor = "grey",
-  zeroLWD = 1, zeroType = 2, facet = FALSE, scales =
-  "free", sort = "natural", decreasing = FALSE, numeric =
-  FALSE, fillColor = "grey", alpha = 1/2, horizontal =
-  FALSE, factors = NULL, only = NULL, shorten = TRUE,
-  intercept = TRUE, plot = TRUE, ...)
+  textAngle = 0, numberAngle = 90, zeroColor = "grey",
+  zeroLWD = 1, zeroType = 2, scales = "fixed", ncol =
+  length(unique(modelCI$Call)), sort = "natural",
+  decreasing = FALSE, numeric = FALSE, fillColor = "grey",
+  alpha = 1/2, horizontal = FALSE, factors = NULL, only =
+  NULL, shorten = TRUE, intercept = TRUE, plot = TRUE, drop
+  = FALSE)
 }
 \arguments{
-  \item{model}{The model we are graphing}
+  \item{\dots}{Models to be plotted}
 
   \item{title}{The name of the plot, if NULL then no name
   is given}
@@ -53,13 +53,12 @@
 
   \item{zeroType}{The type of 0 line, 0 will mean no line}
 
-  \item{facet}{logical; If the coefficients should be
-  faceted by the variables, numeric coefficients (including
-  the intercept) will be one facet}
-
   \item{scales}{The way the axes should be treated in a
   faceted plot.  Can be c("fixed", "free", "free_x",
   "free_y")}
+
+  \item{ncol}{The number of columns that the models should
+  be plotted in}
 
   \item{sort}{Determines the sort order of the
   coefficients.  Possible values are c("natural", "normal",
@@ -87,8 +86,6 @@
   \item{plot}{logical; If the plot should be drawn, if
   false then a data.frame of the values will be returned}
 
-  \item{\dots}{Arguments passed on to other functions}
-
   \item{factors}{Vector of factor variables that will be
   the only ones shown}
 
@@ -104,55 +101,31 @@
   character vector of variables only coefficients for
   factor levels associated with those variables will the
   variable names stripped.}
+
+  \item{drop}{logical; if TRUE then models without valid
+  coeffiecients to show will not be plotted}
 }
 \value{
-  If \code{plot} is \code{TRUE} then a \code{\link{ggplot}}
-  object is returned.  Otherwise a \code{\link{data.frame}}
-  listing coeffcients and confidence bands is returned.
+  A ggplot object
 }
 \description{
-  A graphical display of the coefficients and standard
-  errors from a fitted model
+  Plot the coeffcients from multiple models
 }
 \details{
-  \code{coefplot} is the S3 generic method for plotting the
-  coefficients from a fitted model.
-
-  \code{factors} Vector of factor variables that will be
-  the only ones shown
-
-  \code{only} logical; If factors has a value this
-  determines how interactions are treated.  True means just
-  that variable will be shown and not its interactions.
-  False means interactions will be included.
-
-  \code{shorten} logical or character; If \code{FALSE} then
-  coefficients for factor levels will include their
-  variable name.  If \code{TRUE} coefficients for factor
-  levels will be stripped of their variable names.  If a
-  character vector of variables only coefficients for
-  factor levels associated with those variables will the
-  variable names stripped.
+  Plots a graph similar to \code{\link{coefplot}} but for
+  multiple plots at once
 }
 \examples{
 data(diamonds)
-corner(diamonds)
-model1 <- lm(price ~ carat + cut*color, data=diamonds)
-model2 <- lm(price ~ carat*color, data=diamonds)
-coefplot(model1)
-coefplot(model1, shorten=FALSE)
-coefplot(model1, shorten=c("cut"))
-coefplot(model1, shorten=c("cut"), intercept=FALSE)
-coefplot(model1, factors="cut")
-coefplot(model1, factors="cut", only=TRUE)
-coefplot(model1, facet=TRUE)
-coefplot(model2)
-}
-\author{
-  Jared P. Lander www.jaredlander.com
+model1 <- lm(price ~ carat + cut, data=diamonds)
+model2 <- lm(price ~ carat + cut + color, data=diamonds)
+model3 <- lm(price ~ carat + color, data=diamonds)
+multiplot(model1, model2, model3)
+multiplot(model1, model2, model3, factors="color")
+multiplot(model1, model2, model3, factors="color", drop=TRUE)
+multiplot(model1, model2, model3, plot=FALSE)
 }
 \seealso{
-  \code{\link{lm}} \code{\link{glm}} \code{\link{ggplot}}
-  \code{\link{coefplot}} \code{\link{plotcoef}}
+  \code{link{coefplot}}
 }
 
