@@ -75,7 +75,8 @@ buildFactorDF <- function(modelFactorVars, modelModel, modelCoefs, shorten=TRUE,
     ## this now creates two variables like that
     ## Subbers is used for the coefficient shortening
     ## Checkers is used for narrowing down the the variables
-    varDF <- ddply(varDF, .(Coef), function(vect, namer, checker, collapse, keepers) { vect$Subbers <- paste(vect[, c(namer)], collapse=collapse); vect$Checkers <- paste(vect[, c(checker)], collapse=collapse); return(vect[1, keepers]) }, namer="VarAlter", checker="VarCheck", collapse="|", keepers=c("Var", "Coef", "Subbers", "Checkers", "CoefShort"))
+    varDF <- ddply(varDF, .(Coef), function(vect, namer, checker, collapse, keepers) { vect$Subbers <- paste(vect[, c(namer)], collapse=collapse); vect$Checkers <- paste(unique(vect[, c(checker)]), collapse=collapse); return(vect[1, keepers]) }, namer="VarAlter", checker="VarCheck", collapse="|", keepers=c("Var", "Coef", "Subbers", "Checkers", "CoefShort"))
+    #varDF <- ddply(varDF, .(Coef), function(vect, namer, checker, collapse, keepers) { vect$Subbers <- paste(vect[, c(namer)], collapse=collapse); vect$Checkers <- paste(vect[, c(checker)], collapse=collapse); return(vect[1, keepers]) }, namer="VarAlter", checker="VarCheck", collapse="|", keepers=c("Var", "Coef", "Subbers", "Checkers", "CoefShort"))
 
     ## if only certain factors are to be shown, narrow down the list to them
     if(!is.null(factors))
@@ -235,8 +236,11 @@ rxVarMatcher <- function(modelFactorVars, modelCoefNames, modelCoefs, shorten=TR
 #' #coefplot(model3, factors="cut", numeric=T)
 #' #coefplot(model3, shorten="cut")
 #'
-buildModelCI <- function(model, outerCI=2, innerCI=1, intercept=TRUE, numeric=FALSE, sort="natural", decreasing=TRUE, name=NULL, ...)
+buildModelCI <- function(model, outerCI=2, innerCI=1, intercept=TRUE, numeric=FALSE, sort=c("natural", "normal", "magnitude", "size", "alphabetical"), decreasing=TRUE, name=NULL, ...)
 {
+    # get variables that have multiple options
+    sort <- match.arg(sort)
+    
     # get the information on the model
     modelInfo <- getModelInfo(model, ...)
     

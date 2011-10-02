@@ -115,13 +115,15 @@ coefplot.lm <- function(model, title="Coefficient Plot", xlab="Value", ylab="Coe
 						cex=.8, textAngle=0, numberAngle=0,
 						zeroColor="grey", zeroLWD=1, zeroType=2,
 						facet=FALSE, scales="free",
-						sort="natural", decreasing=FALSE,
+						sort=c("natural", "normal", "magnitude", "size", "alphabetical"), decreasing=FALSE,
 						numeric=FALSE, fillColor="grey", alpha=1/2,
 						horizontal=FALSE, factors=NULL, only=NULL, shorten=TRUE,
 						intercept=TRUE, plot=TRUE, ...)
 {
 	theDots <- list(...)
 	
+    # get variables that have multiple options
+    sort <- match.arg(sort)
  
  	## if they are treating a factor as numeric, then they must specify exactly one factor
  	## hopefully this will soon expand to listing multiple factors
@@ -133,9 +135,19 @@ coefplot.lm <- function(model, title="Coefficient Plot", xlab="Value", ylab="Coe
 		# if we are treating it as numeric, then the sorting should be numeric
 		sort="alpha"
 	}
+    
+    if(length(factors) > 0)
+    {
+        factors <- subSpecials(factors)
+    }
 
     modelCI <- buildModelCI(model, outerCI=outerCI, innerCI=innerCI, intercept=intercept, numeric=numeric, sort=sort, decreasing=decreasing, factors=factors, only=only, shorten=shorten, ...)
 
+    if(numeric)
+    {
+        modelCI$CoefShort <- as.numeric(as.character(modelCI$CoefShort))
+    }
+    
     # which columns will be kept in the melted data.frame
     keepCols <- c("LowOuter", "HighOuter", "LowInner", "HighInner", "Coef", "Checkers", "CoefShort")
 
