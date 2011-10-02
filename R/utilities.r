@@ -337,7 +337,8 @@ buildModelCI <- function(model, outerCI=2, innerCI=1, intercept=TRUE, numeric=FA
 #' @param modelCI A \code{\link{data.frame}} as built by \code{\link{buildModelCI}}
 #' @param keepCols The columns in modelCI that should be kept as there can be extras
 #' @param id.vars The columns to use as ID variables in \code{\link{melt}}
-#' @param variable_name Used in \code{\link{melt}} for naming the column that stores the melted values
+#' @param variable.name Used in \code{\link{melt}} for naming the column that stores the melted variables
+#' @param value.name Used in \code{\link{melt}} for naming the column that stores the melted values
 #' @param innerCols The columns to be included in the \code{\link{data.frame}} of inner standard errors
 #' @param outerCols The columns to be included in the \code{\link{data.frame}} of outer standard errors
 #' @return A list consisting of
@@ -352,17 +353,19 @@ buildModelCI <- function(model, outerCI=2, innerCI=1, intercept=TRUE, numeric=FA
 #' coefplot:::meltModelCI(modeled)
 #'
 meltModelCI <- function(modelCI, keepCols=c("LowOuter", "HighOuter", "LowInner", "HighInner", "Coef", "Checkers", "CoefShort"), 
-                        id.vars=c("CoefShort", "Checkers"), variable_name="Type", outerCols=c("LowOuter", "HighOuter"), 
+                        id.vars=c("CoefShort", "Checkers"), variable.name="Type", value.name="value", outerCols=c("LowOuter", "HighOuter"), 
                         innerCols=c("LowInner", "HighInner"))
 {
     # melt the data frame so it is suitable for ggplot
-    modelMelt <- reshape2::melt(data=modelCI[ ,keepCols], id.vars=id.vars, variable_name=variable_name)
+    #modelMelt <- reshape2::melt(data=modelCI[ ,keepCols], id.vars=id.vars, variable.name=variable.name, value.name=value.name)
+    # change to above line when ggplot2 0.9.0 is released
+    modelMelt <- reshape2:::melt.data.frame(data=modelCI[ ,keepCols], id.vars=id.vars, variable.name=variable.name, value.name=value.name)
 	
 	# just the outerCI info
-	modelMeltOuter <- modelMelt[modelMelt$Type %in% outerCols, ]	# pull out the 95% CI
+	modelMeltOuter <- modelMelt[modelMelt$Type %in% outerCols, ]	# pull out the outer (95% default) CI
 	
 	# just the innerCI info
-	modelMeltInner <- modelMelt[modelMelt$Type %in% innerCols, ]	# pull out the 68% CI
+	modelMeltInner <- modelMelt[modelMelt$Type %in% innerCols, ]	# pull out the inner (68% default) CI
     
     # return the data.frames
     return(list(modelMelt=modelMelt, modelMeltOuter=modelMeltOuter, modelMeltInner=modelMeltInner))
@@ -425,7 +428,7 @@ buildPlotting.lm <- function(modelCI,
     # first is for a normal coefplot or a faceted multiplot
     # the second is for a single-pane multiplot
 
-	outerCIGeom <- list(DisplayOne=geom_line(aes(t=CoefShort, x=value, group=CoefShort), data=modelMeltOuter, colour=color, lwd=lwdOuter),
+	outerCIGeom <- list(DisplayOne=geom_line(aes(y=CoefShort, x=value, group=CoefShort), data=modelMeltOuter, colour=color, lwd=lwdOuter),
                         DisplayMany=geom_linerange(aes(ymin=LowOuter, ymax=HighOuter, colour=as.factor(Model)), data=modelCI, lwd=lwdOuter, position=position_dodge(width=1)),
                         None=NULL)
 	# innerCI layer
