@@ -1,3 +1,17 @@
+Version 1.2.0
+-----------------------------------------------------------------------------------------------------
+Major update.  The codebase has been refactored to run faster and be easily updated for improvements and adding new models.
+New arguments (predictors and coefficients) for specifying coefficients to be plotted both by indicating the specific coefficients (including specific factor levels) or by specifying the predictors that created coefficients.  This is particularly important for factor variables and interactions.
+New argument (newNames) for giving new names to coefficients.
+Mulitplot can be used to plot Andy Gelman's secret weapon by setting secret.weapon to TRUE and selecting just one coefficient in coefficients.  For a vertical secret weapon set by to "Model" and horizontal to FALSE.
+Faceting a single model no longer works.
+
+
+Version 1.1.9
+-----------------------------------------------------------------------------------------------------
+Refactoring of code to make new models easier to add.
+For now this means certain functionality will be lost, such as the shortening of coefficient names, plot a factor variable numerically.
+
 Version 1.1.8
 -----------------------------------------------------------------------------------------------------
 Minor changes to plotting to reflect change in gpplot2_0.9.2.

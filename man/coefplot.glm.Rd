@@ -1,8 +1,8 @@
-\name{coefplot.lm}
-\alias{coefplot.lm}
-\title{coefplot.lm}
+\name{coefplot.glm}
+\alias{coefplot.glm}
+\title{coefplot.glm}
 \usage{
-  \method{coefplot}{lm} (...)
+  \method{coefplot}{glm} (...)
 }
 \arguments{
   \item{\dots}{All arguments are passed on to
@@ -14,11 +14,11 @@
   information.
 }
 \description{
-  Dotplot for lm coefficients
+  Dotplot for glm coefficients
 }
 \details{
   A graphical display of the coefficients and standard
-  errors from a fitted lm model
+  errors from a fitted glm model
 
   \code{\link{coefplot}} is the S3 generic method for
   plotting the coefficients from a fitted model.
@@ -27,8 +27,8 @@
   see \code{\link{coefplot.default}}
 }
 \examples{
-model1 <- lm(price ~ carat + cut*color, data=diamonds)
-coefplot(model1)
+model2 <- glm(price > 10000 ~ carat + cut*color, data=diamonds, family=binomial(link="logit"))
+coefplot(model2)
 }
 \author{
   Jared P. Lander

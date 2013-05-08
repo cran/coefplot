@@ -4,8 +4,9 @@
 \usage{
   multiplot(..., title = "Coefficient Plot",
     xlab = "Value", ylab = "Coefficient", innerCI = 1,
-    outerCI = 2, lwdInner = 1, lwdOuter = 0,
-    color = "blue", cex = 0.8, textAngle = 0,
+    outerCI = 2, lwdInner = 1, lwdOuter = 0, pointSize = 3,
+    dodgeHeight = 1, color = "blue", shape = 16,
+    linetype = 1, cex = 0.8, textAngle = 0,
     numberAngle = 90, zeroColor = "grey", zeroLWD = 1,
     zeroType = 2, single = TRUE, scales = "fixed",
     ncol = length(unique(modelCI$Model)),
@@ -13,7 +14,13 @@
     decreasing = FALSE, names = NULL, numeric = FALSE,
     fillColor = "grey", alpha = 1/2, horizontal = FALSE,
     factors = NULL, only = NULL, shorten = TRUE,
-    intercept = TRUE, plot = TRUE, drop = FALSE)
+    intercept = TRUE, interceptName = "(Intercept)",
+    coefficients = NULL, predictors = NULL, strict = FALSE,
+    newNames = NULL, plot = TRUE, drop = FALSE,
+    by = c("Coefficient", "Model"), plot.shapes = FALSE,
+    plot.linetypes = FALSE,
+    legend.position = c("right", "left", "bottom", "top"),
+    secret.weapon = FALSE)
 }
 \arguments{
   \item{\dots}{Models to be plotted}
@@ -39,7 +46,16 @@
   \item{lwdOuter}{The thickness of the outer confidence
   interval}
 
+  \item{pointSize}{Size of coefficient point}
+
+  \item{dodgeHeight}{Amount of vertical dodging}
+
   \item{color}{The color of the points and lines}
+
+  \item{shape}{The shape of the points}
+
+  \item{linetype}{The type of line drawn for the standard
+  errors}
 
   \item{cex}{The text size multiplier, currently not used}
 
@@ -67,14 +83,14 @@
   be plotted in}
 
   \item{sort}{Determines the sort order of the
-  coefficients.  Possible values are c("natural", "normal",
-  "magnitude", "size", "alphabetical")}
+  coefficients.  Possible values are c("natural",
+  "magnitude", "alphabetical")}
 
   \item{decreasing}{logical; Whether the coefficients
   should be ascending or descending}
 
   \item{names}{Names for models, if NULL then they will be
-  numerically labelled}
+  named after their inputs}
 
   \item{numeric}{logical; If true and factors has exactly
   one value, then it is displayed in a horizontal graph
@@ -91,6 +107,23 @@
 
   \item{intercept}{logical; Whether the Intercept
   coefficient should be plotted}
+
+  \item{interceptName}{Specifies name of intercept it case
+  it is not the default of "(Intercept").}
+
+  \item{predictors}{A character vector specifying which
+  coefficients to keep.  Each individual coefficient can be
+  specfied.  Use predictors to specify entire factors}
+
+  \item{coefficients}{A character vector specifying which
+  factor coefficients to keep.  It will keep all levels and
+  any interactions, even if those are not listed.}
+
+  \item{strict}{If TRUE then predictors will only be
+  matched to its own coefficients, not its interactions}
+
+  \item{newNames}{Named character vector of new names for
+  coefficients}
 
   \item{plot}{logical; If the plot should be drawn, if
   false then a data.frame of the values will be returned}
@@ -113,6 +146,25 @@
 
   \item{drop}{logical; if TRUE then models without valid
   coeffiecients to show will not be plotted}
+
+  \item{by}{If "Coefficient" then anormal multiplot is
+  plotted, if "Model" then the coefficients are plotted
+  along the axis with one for each model.  If plotting by
+  model only one coefficient at a time can be selected.
+  This is called the secret weapon by Andy Gelman.}
+
+  \item{plot.shapes}{If \code{TRUE} points will have
+  different shapes for different models}
+
+  \item{plot.linetypes}{If \code{TRUE} lines will have
+  different shapes for different models}
+
+  \item{legend.position}{position of legend, one of "left",
+  "right", "bottom", "top"}
+
+  \item{secret.weapon}{If this is \code{TRUE} and exactly
+  one coefficient is listed in coefficients then Andy
+  Gelman's secret weapon is plotted.}
 }
 \value{
   A ggplot object
@@ -126,18 +178,40 @@
 
   For now, if \code{names} is provided the plots will
   appear in alphabetical order of the names.  This wil be
-  adjusted in future iterations.
+  adjusted in future iterations.  When setting \code{by} to
+  "Model" and specifying exactly one variable in
+  \code{variables} that one coefficient will be plotted
+  repeatedly with the axis labeled by model.  This is Andy
+  Gelman's secret weapon.
 }
 \examples{
+\dontrun{
 data(diamonds)
 model1 <- lm(price ~ carat + cut, data=diamonds)
 model2 <- lm(price ~ carat + cut + color, data=diamonds)
 model3 <- lm(price ~ carat + color, data=diamonds)
 multiplot(model1, model2, model3)
 multiplot(model1, model2, model3, single=FALSE)
-multiplot(model1, model2, model3, factors="color")
-multiplot(model1, model2, model3, factors="color", drop=TRUE)
 multiplot(model1, model2, model3, plot=FALSE)
+require(reshape2)
+data(tips, package="reshape2")
+mod1 <- lm(tip ~ total_bill + sex, data=tips)
+mod2 <- lm(tip ~ total_bill * sex, data=tips)
+mod3 <- lm(tip ~ total_bill * sex * day, data=tips)
+mod7 <- lm(tip ~ total_bill + day + time, data=tips)
+multiplot(mod1, mod2, mod3, mod7, single=FALSE, scales="free_x")
+multiplot(mod1, mod2, mod3, mod7, single=FALSE, scales="free_x")
+multiplot(mod1, mod2, mod3, mod7, single=FALSE, scales="free_x", plot.shapes=TRUE)
+multiplot(mod1, mod2, mod3, mod7, single=TRUE, scales="free_x",
+plot.shapes=TRUE, plot.linetypes=TRUE)
+multiplot(mod1, mod2, mod3, mod7, single=TRUE, scales="free_x",
+plot.shapes=FALSE, plot.linetypes=TRUE, legend.position="bottom")
+# the secret weapon
+multiplot(mod1, mod2, mod3, mod7, coefficients="total_bill", secret.weapon=TRUE)
+# horizontal secret weapon
+multiplot(mod1, mod2, mod3, mod7, coefficients="total_bill", by="Model", horizontal=FALSE)
+
+}
 }
 \seealso{
   \code{link{coefplot}}

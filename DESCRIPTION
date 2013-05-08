@@ -1,18 +1,20 @@
 Package: coefplot
 Type: Package
 Title: Plots Coefficients from Fitted Models
-Version: 1.1.8
-Date: 2012-09-28
+Version: 1.2.0
+Date: 2013-05-08
 Author: Jared P. Lander
-Maintainer: <packages@jaredlander.com>
+Maintainer: Jared P. Lander <packages@jaredlander.com>
 Description: Plots the coefficients from a model object
 License: BSD
 LazyLoad: yes
-Depends: ggplot2
-Imports: plyr, stringr, reshape2, useful
-Collate: 'coefplot.r' 'modelInfo.r' 'utilities.r' 'coefplot-package.r'
-        'multiplot.r'
+Depends: ggplot2 (>= 0.9.3)
+Imports: plyr, reshape2, useful, scales, proto
+Collate: 'coefplot.r' 'coefplot-package.r' 'multiplot.r'
+        'extractCoef.r' 'buildPlottingFrame.r' 'buildPlot.r'
+        'dodging.r' 'coefPredMatching.r'
 ByteCompile: TRUE
-Packaged: 2012-09-28 18:18:55 UTC; Jared
+Packaged: 2013-05-12 04:00:45 UTC; Jared
+NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2012-09-29 06:20:14
+Date/Publication: 2013-05-12 12:43:26
