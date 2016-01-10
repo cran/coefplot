@@ -35,7 +35,7 @@ buildModelCI <- function(model, ...)
 #' @author Jared P. Lander
 #' @aliases buildModelCI.default
 #' @export buildModelCI.default
-#' @S3method buildModelCI default
+#' @export
 #' @method buildModelCI default
 #' @import plyr
 #' @param model A Fitted model such as from lm, glm
@@ -56,7 +56,7 @@ buildModelCI <- function(model, ...)
 #' @seealso \code{\link{coefplot}} \code{\link{multiplot}}
 #' @examples
 #'
-#' data(diamonds)
+#' data(diamonds, package='ggplot2')
 #' model1 <- lm(price ~ carat + cut, data=diamonds)
 #' coefplot:::buildModelCI(model1)
 #' coefplot(model1)
@@ -70,7 +70,7 @@ buildModelCI.default <- function(model, outerCI=2, innerCI=1, intercept=TRUE, nu
 
     #print(structure(as.list(match.call()[-1]), class = "uneval")$model)
     # get model information
-    modelCI <- extract.coef(model)
+    modelCI <- extract.coef(model, ...)
     
     # if the user has specified predictors calculate which coefficient they go with
     keptCoefsFromPredictors <- getCoefsFromPredictors(model=model, predictors=predictors, strict=strict)
