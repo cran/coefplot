@@ -231,7 +231,11 @@ extract.coef.glmnet <- function(model, lambda=stats::median(model$lambda), ...)
 {
     # get coefs at given s
     theCoef <- as.matrix(stats::coef(model, s=lambda))
-    coefDF <- data.frame(Value=theCoef, SE=NA_real_, Coefficient=rownames(theCoef))
+    # supressing warning because sometimes there will be two intercepts
+    # that would generate a rowname warning which really isn't needed
+    coefDF <- suppressWarnings(
+        data.frame(Value=theCoef, SE=NA_real_, Coefficient=rownames(theCoef))
+    )
     coefDF <- coefDF[theCoef != 0, ]
     names(coefDF)[1] <- "Value"
 
@@ -244,21 +248,21 @@ extract.coef.glmnet <- function(model, lambda=stats::median(model$lambda), ...)
 #' @author Jared P. Lander
 #' @method extract.coef cv.glmnet
 #' @aliases extract.coef.cv.glmnet
+#' @export
 #' @param model Model object from which to extract information.
 #' @param lambda Value of penalty parameter.  Can be either a numeric value or one of "lambda.min" or "lambda.1se"
 #' @param \dots Further arguments
 #' @return A \code{\link{data.frame}} containing the coefficient, the standard error and the variable name.
 #' @examples
-#' \dontrun{
 #' library(glmnet)
 #' library(ggplot2)
 #' library(useful)
 #' data(diamonds)
-#' diaX <- build.x(price ~ carat + cut + x - 1, data=diamonds, contrasts = TRUE)
-#' diaY <- build.y(price ~ carat + cut + x - 1, data=diamonds)
+#' diaX <- useful::build.x(price ~ carat + cut + x - 1, data=diamonds, 
+#'  contrasts=FALSE)
+#' diaY <- useful::build.y(price ~ carat + cut + x - 1, data=diamonds)
 #' modG1 <- cv.glmnet(x=diaX, y=diaY, k=5)
 #' extract.coef(modG1)
-#' }
 #' 
 extract.coef.cv.glmnet <- function(model, lambda="lambda.min", ...)
 {
@@ -306,4 +310,44 @@ extract.coef.maxLik <- function(model, ...)
     }
     
     data.frame(Value=theCoef, SE=summary(model)$estimate[, 'Std. error'], Coefficient=coefNames)
+}
+
+
+#' @title extract.coef.xgb.Booster
+#' @description Extract Coefficient Information from Models
+#' @details Gets the coefficient values and variable names from a model.  Since xgboost does not have standard errors, those will just be NA.
+#' @author Jared P. Lander
+#' @method extract.coef xgb.Booster
+#' @aliases extract.coef.xgb.Booster
+#' @export
+#' @param model Model object from which to extract information.
+#' @param feature_names Names of coefficients
+#' @param \dots Further arguments
+#' @return A \code{\link{data.frame}} containing the coefficient, the standard error and the variable name.
+#' @examples
+#' library(xgboost)
+#' data(diamonds, package='ggplot2')
+#' diaX <- useful::build.x(price ~ carat + cut + x, data=diamonds, contrasts=FALSE)
+#' diaY <- useful::build.y(price ~ carat + cut + x, data=diamonds)
+#' xg1 <- xgboost(data=diaX, label=diaY, 
+#' booster='gblinear',
+#' objective='reg:linear', eval_metric='rmse',
+#' nrounds=50
+#' )
+#' extract.coef(xg1)
+#' extract.coef(xg1, feature_names=colnames(diaX))
+#' 
+extract.coef.xgb.Booster <- function(model, feature_names=NULL, ...)
+{
+    # get coefs for the boosted tree
+    theCoef <- xgboost::xgb.importance(model=model, 
+                                       feature_names=feature_names) %>% 
+        # convert to a tibble
+        tibble::as_tibble() %>% 
+        # return NAs for SE
+        dplyr::mutate(SE=NA_real_) %>% 
+        # rename some columns
+        dplyr::select('Value'='Weight', 'SE'='SE', 'Coefficient'='Feature')
+    
+    return(theCoef)
 }

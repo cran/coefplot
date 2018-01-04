@@ -13,7 +13,8 @@
   decreasing = FALSE, numeric = FALSE, fillColor = "grey", alpha = 1/2,
   horizontal = FALSE, factors = NULL, only = NULL, shorten = TRUE,
   intercept = TRUE, interceptName = "(Intercept)", coefficients = NULL,
-  predictors = NULL, strict = FALSE, newNames = NULL, plot = TRUE, ...)
+  predictors = NULL, strict = FALSE, trans = identity, newNames = NULL,
+  plot = TRUE, ...)
 }
 \arguments{
 \item{model}{The model to plot.}
@@ -58,7 +59,7 @@
 
 \item{decreasing}{logical; Whether the coefficients should be ascending or descending}
 
-\item{numeric}{logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with constinuous confidence bounds.  Currently not available.}
+\item{numeric}{logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with continuous confidence bounds.  Currently not available.}
 
 \item{fillColor}{The color of the confidence bounds for a numeric factor.  Currently not available.}
 
@@ -78,9 +79,11 @@
 
 \item{coefficients}{A character vector specifying which factor coefficients to keep.  It will keep all levels and any interactions, even if those are not listed.}
 
-\item{predictors}{A character vector specifying which coefficients to keep.  Each individual coefficient can be specfied.  Use predictors to specify entire factors.}
+\item{predictors}{A character vector specifying which coefficients to keep.  Each individual coefficient can be specified.  Use predictors to specify entire factors.}
 
 \item{strict}{If TRUE then predictors will only be matched to its own coefficients, not its interactions}
+
+\item{trans}{A transformation function to apply to the values and confidence intervals.  \code{identity} by default.  Use \code{invlogit} for binary regression.}
 
 \item{newNames}{Named character vector of new names for coefficients}
 
@@ -114,10 +117,9 @@ coefplot(model1, predictors="color", strict=TRUE)
 coefplot(model1, coefficients=c("(Intercept)", "color.Q"))
 
 }
-\author{
-Jared P. Lander
-}
 \seealso{
 \code{\link{lm}} \code{\link{glm}} \code{\link{ggplot}} \code{\link{coefplot}} \code{\link{plotcoef}}
 }
-
+\author{
+Jared P. Lander
+}

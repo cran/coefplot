@@ -52,7 +52,7 @@
 
 \item{zeroType}{The type of 0 line, 0 will mean no line}
 
-\item{numeric}{logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with constinuous confidence bounds.}
+\item{numeric}{logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with continuous confidence bounds.}
 
 \item{fillColor}{The color of the confidence bounds for a numeric factor}
 
@@ -97,4 +97,3 @@ coefplot(df2)
 \author{
 Jared P. Lander
 }
-

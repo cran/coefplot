@@ -7,7 +7,7 @@
 \method{buildModelCI}{default}(model, outerCI = 2, innerCI = 1,
   intercept = TRUE, numeric = FALSE, sort = c("natural", "magnitude",
   "alphabetical"), predictors = NULL, strict = FALSE, coefficients = NULL,
-  newNames = NULL, decreasing = TRUE, name = NULL,
+  newNames = NULL, trans = identity, decreasing = TRUE, name = NULL,
   interceptName = "(Intercept)", ...)
 }
 \arguments{
@@ -19,17 +19,19 @@
 
 \item{intercept}{logical; Whether the Intercept coefficient should be plotted}
 
-\item{numeric}{logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with constinuous confidence bounds.; not used for now.}
+\item{numeric}{logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with continuous confidence bounds.; not used for now.}
 
 \item{sort}{Determines the sort order of the coefficients.  Possible values are c("natural", "magnitude", "alphabetical")}
 
-\item{predictors}{A character vector specifying which variables to keep.  Each individual variable has to be specfied, so individual levels of factors must be specified.  We are working on making this easier to implement, but this is the only option for now.}
+\item{predictors}{A character vector specifying which variables to keep.  Each individual variable has to be specified, so individual levels of factors must be specified.  We are working on making this easier to implement, but this is the only option for now.}
 
 \item{strict}{If TRUE then predictors will only be matched to its own coefficients, not its interactions}
 
 \item{coefficients}{A character vector specifying which factor variables to keep.  It will keep all levels and any interactions, even if those are not listed.}
 
 \item{newNames}{Named character vector of new names for coefficients}
+
+\item{trans}{A transformation function to apply to the values and confidence intervals.  \code{identity} by default.  Use \code{invlogit} for binary regression.}
 
 \item{decreasing}{logical; Whether the coefficients should be ascending or descending}
 
@@ -40,7 +42,7 @@
 \item{\dots}{See Details for information on \code{factors}, \code{only} and \code{shorten}}
 }
 \value{
-A \code{\link{data.frame}} listing coeffcients and confidence bands.
+A \code{\link{data.frame}} listing coefficients and confidence bands.
 }
 \description{
 Construct Confidence Interval Values
@@ -56,10 +58,9 @@ coefplot:::buildModelCI(model1)
 coefplot(model1)
 
 }
-\author{
-Jared P. Lander
-}
 \seealso{
 \code{\link{coefplot}} \code{\link{multiplot}}
 }
-
+\author{
+Jared P. Lander
+}

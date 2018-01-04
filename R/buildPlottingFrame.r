@@ -12,7 +12,7 @@
 #' @import plyr
 #' @param model A Fitted model such as from lm, glm
 #' @param \dots Arguments passed on onto other methods
-#' @return A \code{\link{data.frame}} listing coeffcients and confidence bands.
+#' @return A \code{\link{data.frame}} listing coefficients and confidence bands.
 #' @seealso \code{\link{coefplot}} \code{\link{multiplot}}
 #' @examples
 #'
@@ -43,16 +43,17 @@ buildModelCI <- function(model, ...)
 #' @param outerCI How wide the outer confidence interval should be, normally 2 standard deviations.  If 0, then there will be no outer confidence interval.
 #' @param sort Determines the sort order of the coefficients.  Possible values are c("natural", "magnitude", "alphabetical")
 #' @param decreasing logical; Whether the coefficients should be ascending or descending
-#' @param predictors A character vector specifying which variables to keep.  Each individual variable has to be specfied, so individual levels of factors must be specified.  We are working on making this easier to implement, but this is the only option for now.
+#' @param predictors A character vector specifying which variables to keep.  Each individual variable has to be specified, so individual levels of factors must be specified.  We are working on making this easier to implement, but this is the only option for now.
 #' @param coefficients A character vector specifying which factor variables to keep.  It will keep all levels and any interactions, even if those are not listed.
 #' @param strict If TRUE then predictors will only be matched to its own coefficients, not its interactions
 #' @param newNames Named character vector of new names for coefficients
-#' @param numeric logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with constinuous confidence bounds.; not used for now.
+#' @param trans A transformation function to apply to the values and confidence intervals.  \code{identity} by default.  Use \code{invlogit} for binary regression.
+#' @param numeric logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with continuous confidence bounds.; not used for now.
 #' @param intercept logical; Whether the Intercept coefficient should be plotted
 #' @param interceptName Specifies name of intercept it case it is not the default of "(Intercept").
 #' @param \dots See Details for information on \code{factors}, \code{only} and \code{shorten}
 #' @param name A name for the model, if NULL the call will be used
-#' @return A \code{\link{data.frame}} listing coeffcients and confidence bands.
+#' @return A \code{\link{data.frame}} listing coefficients and confidence bands.
 #' @seealso \code{\link{coefplot}} \code{\link{multiplot}}
 #' @examples
 #'
@@ -64,6 +65,7 @@ buildModelCI <- function(model, ...)
 buildModelCI.default <- function(model, outerCI=2, innerCI=1, intercept=TRUE, numeric=FALSE, 
                          sort=c("natural", "magnitude", "alphabetical"), predictors=NULL, strict=FALSE, coefficients=NULL, 
                          newNames=NULL,
+                         trans=identity,
                          decreasing=TRUE, name=NULL, interceptName="(Intercept)", ...)
 {
     sort <- match.arg(sort)
@@ -120,6 +122,15 @@ buildModelCI.default <- function(model, outerCI=2, innerCI=1, intercept=TRUE, nu
     {
         modelCI$Model <- name
     }
+    
+    # perform a transformation on the numbers if it's not the identity
+    if(!identical(trans, identity))
+    {
+        modelCI <- dplyr::mutate_at(.tbl=modelCI, .funs=dplyr::funs(trans), 
+                                       .vars=c('Value', 
+                                              'HighInner', 'HighOuter', 
+                                              'LowInner', 'LowOuter'))
+    }
 
     ## possible orderings of the coefficients
     ordering <- switch(sort,
@@ -128,7 +139,8 @@ buildModelCI.default <- function(model, outerCI=2, innerCI=1, intercept=TRUE, nu
                        alphabetical=order(modelCI$Coefficient, decreasing=decreasing), 	# alphabetical order
                        order(1:nrow(modelCI))		# default, the way it came in
     )
-    
+
+        
     # implement the ordering
     modelCI <- modelCI[ordering, ]
     modelCI$Coefficient <- factor(modelCI$Coefficient, levels=modelCI$Coefficient)

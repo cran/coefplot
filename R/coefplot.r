@@ -86,19 +86,20 @@ coefplot <- function(model, ...)
 #' @param scales The way the axes should be treated in a faceted plot.  Can be c("fixed", "free", "free_x", "free_y").  Currently not available.
 #' @param sort Determines the sort order of the coefficients.  Possible values are c("natural", "normal", "magnitude", "size", "alphabetical")
 #' @param decreasing logical; Whether the coefficients should be ascending or descending
-#' @param numeric logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with constinuous confidence bounds.  Currently not available.
+#' @param numeric logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with continuous confidence bounds.  Currently not available.
 #' @param fillColor The color of the confidence bounds for a numeric factor.  Currently not available.
 #' @param alpha The transparency level of the numeric factor's confidence bound.  Currently not available.
 #' @param horizontal logical; If the plot should be displayed horizontally.  Currently not available.
 #' @param intercept logical; Whether the Intercept coefficient should be plotted
 #' @param interceptName Specifies name of intercept it case it is not the default of "(Intercept").
 #' @param plot logical; If the plot should be drawn, if false then a data.frame of the values will be returned
-#' @param predictors A character vector specifying which coefficients to keep.  Each individual coefficient can be specfied.  Use predictors to specify entire factors.
+#' @param predictors A character vector specifying which coefficients to keep.  Each individual coefficient can be specified.  Use predictors to specify entire factors.
 #' @param coefficients A character vector specifying which factor coefficients to keep.  It will keep all levels and any interactions, even if those are not listed.
 #' @param strict If TRUE then predictors will only be matched to its own coefficients, not its interactions
 ##See Details for information on \code{factors}, \code{only} and \code{shorten}
 #' @param newNames Named character vector of new names for coefficients
 ### non-listed arguments
+#' @param trans A transformation function to apply to the values and confidence intervals.  \code{identity} by default.  Use \code{invlogit} for binary regression.
 #' @param factors Vector of factor variables that will be the only ones shown
 #' @param only logical; If factors has a value this determines how interactions are treated.  True means just that variable will be shown and not its interactions.  False means interactions will be included.
 #' @param shorten logical or character; If \code{FALSE} then coefficients for factor levels will include their variable name.  If \code{TRUE} coefficients for factor levels will be stripped of their variable names.  If a character vector of variables only coefficients for factor levels associated with those variables will the variable names stripped.  Currently not available.
@@ -129,6 +130,7 @@ coefplot.default <- function(model, title="Coefficient Plot", xlab="Value", ylab
                              numeric=FALSE, fillColor="grey", alpha=1/2,
                              horizontal=FALSE, factors=NULL, only=NULL, shorten=TRUE,
                              intercept=TRUE, interceptName="(Intercept)", coefficients=NULL, predictors=NULL, strict=FALSE, 
+                             trans=identity,
                              newNames=NULL, plot=TRUE, ...)
 {
 	theDots <- list(...)
@@ -140,6 +142,7 @@ coefplot.default <- function(model, title="Coefficient Plot", xlab="Value", ylab
     modelCI <- buildModelCI(model, outerCI=outerCI, innerCI=innerCI, intercept=intercept, 
                             coefficients=coefficients, predictors=predictors, strict=strict, newNames=newNames,
                             numeric=numeric, sort=sort, 
+                            trans=trans,
                             decreasing=decreasing, factors=factors, only=only, shorten=shorten, ...)
     
     # if not plotting just return the modelCI data.frame
@@ -188,7 +191,7 @@ coefplot.default <- function(model, title="Coefficient Plot", xlab="Value", ylab
 #' @param zeroType The type of 0 line, 0 will mean no line
 #' @param facet logical; If the coefficients should be faceted by the variables, numeric coefficients (including the intercept) will be one facet
 #' @param scales The way the axes should be treated in a faceted plot.  Can be c("fixed", "free", "free_x", "free_y")
-#' @param numeric logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with constinuous confidence bounds.
+#' @param numeric logical; If true and factors has exactly one value, then it is displayed in a horizontal graph with continuous confidence bounds.
 #' @param fillColor The color of the confidence bounds for a numeric factor
 #' @param alpha The transparency level of the numeric factor's confidence bound
 #' @param horizontal logical; If the plot should be displayed horizontally
@@ -276,6 +279,7 @@ coefplot.lm <- function(...)
 #' 
 #' model2 <- glm(price > 10000 ~ carat + cut*color, data=diamonds, family=binomial(link="logit"))
 #' coefplot(model2)
+#' coefplot(model2, trans=invlogit)
 coefplot.glm <- function(...)
 {
     coefplot.default(...)
