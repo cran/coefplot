@@ -12,17 +12,19 @@
 \item{...}{Further arguments}
 }
 \value{
-A \code{\link{data.frame}} containing the coefficient, the standard error and the variable name.
+A \code{\link{data.frame}} containing the coefficient, the standard 
+error and the variable name.
 }
 \description{
 Extract Coefficient Information from rxLogit Models
 }
 \details{
-Gets the coefficient values and standard errors, and variable names from an rxLogit model.
+Gets the coefficient values and standard errors, and variable names from an 
+rxLogit model.
 }
 \examples{
 \dontrun{
-require(ggplot2)
+library(ggplot2)
 data(diamonds)
 mod6 <- rxLogit(price > 10000 ~ carat + cut + x, data=diamonds)
 extract.coef(mod6)

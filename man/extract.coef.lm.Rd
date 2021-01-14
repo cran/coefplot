@@ -12,7 +12,8 @@
 \item{...}{Further arguments}
 }
 \value{
-A \code{\link{data.frame}} containing the coefficient, the standard error and the variable name.
+A \code{\link{data.frame}} containing the coefficient, the standard 
+error and the variable name.
 }
 \description{
 Extract Coefficient Information from lm Models
@@ -22,7 +23,7 @@ Gets the coefficient values and standard errors, and variable names from an lm m
 }
 \examples{
 \dontrun{
-require(ggplot2)
+library(ggplot2)
 data(diamonds)
 library(coefplot)
 mod1 <- lm(price ~ carat + cut + x, data=diamonds)

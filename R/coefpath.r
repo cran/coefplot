@@ -8,6 +8,7 @@
 #' @return A dygraphs object
 #' @examples 
 #' 
+#' \dontshow{if(requireNamespace('glmnet', quietly=TRUE))\{}
 #' library(glmnet)
 #' library(ggplot2)
 #' library(useful)
@@ -24,6 +25,7 @@
 #' y <- rnorm(100)
 #' fit1 <- glmnet(x, y)
 #' coefpath(fit1)
+#' \dontshow{\}}
 #' 
 coefpath <- function(model, ...)
 {

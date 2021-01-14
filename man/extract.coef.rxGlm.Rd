@@ -12,17 +12,19 @@
 \item{...}{Further arguments}
 }
 \value{
-A \code{\link{data.frame}} containing the coefficient, the standard error and the variable name.
+A \code{\link{data.frame}} containing the coefficient, the standard 
+error and the variable name.
 }
 \description{
 Extract Coefficient Information from rxGlm Models
 }
 \details{
-Gets the coefficient values and standard errors, and variable names from an rxGlm model.
+Gets the coefficient values and standard errors, and variable names from an 
+rxGlm model.
 }
 \examples{
 \dontrun{
-require(ggplot2)
+library(ggplot2)
 data(diamonds)
 mod4 <- rxGlm(price ~ carat + cut + x, data=diamonds)
 mod5 <- rxGlm(price > 10000 ~ carat + cut + x, data=diamonds, fmaily="binomial")
